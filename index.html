@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+        <script src="plotly.min.js"></script>
+    </head>
+
+    <body>
+
+        <div id="chart_current" ></div>
+        <div id="chart_voltage" ></div>
+        <div id="chart_power" ></div>
+
+        <script>
+
+            let started = 0;
+
+            async function getData(){
+                const Http = new XMLHttpRequest();
+                const url='http://localhost:5000/getVals';
+                Http.open("GET", url);
+                Http.send();
+
+                Http.onreadystatechange = function () {
+                    if (this.readyState == 4 && this.status == 200){
+                        console.log(Http.responseText)
+                        if (started == 0) {
+                            startPlots(JSON.parse(Http.responseText));
+                            started = 1;
+                        } else {
+                            plotchar(JSON.parse(Http.responseText));
+                        }
+                    }
+                }
+            }
+
+            async function startPlots(obj) {
+
+                Plotly.plot('chart_current',[{
+                    y:[obj.current],
+                    type:'line'
+                }]);
+
+                Plotly.plot('chart_voltage',[{
+                    y:[obj.voltage],
+                    type:'line'
+                }]);
+
+                Plotly.plot('chart_power',[{
+                    y:[obj.power],
+                    type:'line'
+                }]);
+            }
+            
+            let count = 0;
+
+            async function plotchar(obj){
+                
+                Plotly.extendTraces('chart_current',{ y: [[obj.current]] }, [0]);
+                Plotly.extendTraces('chart_voltage',{ y: [[obj.voltage]] }, [0]);
+                Plotly.extendTraces('chart_power',  { y: [[obj.power]] }, [0]);
+
+                count++;
+
+                if (count > 20) {
+                    Plotly.relayout('chart_current', {
+                        xaxis: {
+                            range: [count - 20, count]
+                        }
+                    });
+
+                    Plotly.relayout('chart_voltage', {
+                        xaxis: {
+                            range: [count - 20, count]
+                        }
+                    });
+
+                    Plotly.relayout('chart_power', {
+                        xaxis: {
+                            range: [count - 20, count]
+                        }
+                    });
+                }
+            }
+            
+            
+            getData();
+            setInterval(getData, 200);
+
+        </script>
+
+    </body>
+</html>
