@@ -36,12 +36,12 @@
 
             async function startPlots(obj) {
 
-                Plotly.plot('chart_current',[{
+                //Plotly.plot('chart_current',[{
                     y:[obj.current],
                     type:'line'
                 }]);
 
-                Plotly.plot('chart_voltage',[{
+                //Plotly.plot('chart_voltage',[{
                     y:[obj.voltage],
                     type:'line'
                 }]);
@@ -56,20 +56,20 @@
 
             async function plotchar(obj){
                 
-                Plotly.extendTraces('chart_current',{ y: [[obj.current]] }, [0]);
-                Plotly.extendTraces('chart_voltage',{ y: [[obj.voltage]] }, [0]);
+                //Plotly.extendTraces('chart_current',{ y: [[obj.current]] }, [0]);
+                //Plotly.extendTraces('chart_voltage',{ y: [[obj.voltage]] }, [0]);
                 Plotly.extendTraces('chart_power',  { y: [[obj.power]] }, [0]);
 
                 count++;
 
                 if (count > 20) {
-                    Plotly.relayout('chart_current', {
+                    //Plotly.relayout('chart_current', {
                         xaxis: {
                             range: [count - 20, count]
                         }
                     });
 
-                    Plotly.relayout('chart_voltage', {
+                    //Plotly.relayout('chart_voltage', {
                         xaxis: {
                             range: [count - 20, count]
                         }
