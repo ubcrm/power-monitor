@@ -1,12 +1,11 @@
-from flask import Flask, jsonify, send_file
+from flask import Flask, jsonify, send_file, render_template
 from flask_cors import CORS
 
 #import _thread
 import threading
-from random import randint
-from random import seed
 
 import atexit
+import time
 
 from Phidget22.Phidget import *
 from Phidget22.Devices.VoltageInput import *
@@ -17,10 +16,12 @@ from Phidget22.PhidgetException import *
 app = Flask(__name__)
 CORS(app)
 
-current = None
-voltage = None
-power = None
-seed(1)
+current = 0
+voltage = 0
+power = 0
+
+stopThread = 0
+powerThread = None
 
 '''
 currentThread = None
@@ -33,17 +34,17 @@ threads = [currentThread, voltageThread, powerThread]
 voltageCh = None
 currentCh = None
 
-@app.route('/', methods=['GET'])
-def getIndex():
-    return render_template("index.html")
+# @app.route('/', methods=['GET'])
+# def getIndex():
+#     return render_template("index.html")
 
 @app.route('/getVals', methods=['GET'])
 def getIandV():
     global current, voltage, power
-    while (power == None):
-        while (voltage == None):
-            while (current == None):
-                pass
+    # while (power == None):
+    #     while (voltage == None):
+    #         while (current == None):
+    #             pass
     
     return jsonify({"current": current,"voltage": voltage, "power": power})
 
@@ -68,15 +69,34 @@ def voltageChangeHandler(self, voltage_update):
     global voltage
     voltage = voltage_update
         
-def calculatePower():
+def calculatePower(run_event):
     global current, voltage, power
-    while True:
-        power = current * voltage
+    global stopThread
+    # while True:
+    #     power = current * voltage
+
+    while run_event.is_set():
+        try:
+            # time.sleep(0.5)
+            power = current * voltage
+            if stopThread == 1:
+                break
+            # print("power is {0}, current is {1}, voltage is {2}".format(power, current, voltage))
+        except KeyboardInterrupt:
+            break
+        except:
+            break
         
         
-def exitHandler():
-    global voltageCh, currentCh
+def exitHandler(run_event):
+    global voltageCh
+    global currentCh
     global powerThread
+    global stopThread
+
+    run_event.clear()
+
+    stopThread = 1
     
     if voltageCh is not None:
         voltageCh.close()
@@ -86,6 +106,7 @@ def exitHandler():
     
     if powerThread is not None:
         powerThread.join()
+
     '''
     for thread in threads:
         if thread is not None:
@@ -96,6 +117,9 @@ def exitHandler():
 if __name__ == "__main__":
     #_thread.start_new_thread(doThreading, ())
     
+    run_event = threading.Event()
+    run_event.set()
+
     try:
         # voltage channel initialization
         voltageCh = VoltageInput()
@@ -103,6 +127,7 @@ if __name__ == "__main__":
         voltageCh.setIsHubPortDevice(False)
         voltageCh.setOnVoltageChangeHandler(voltageChangeHandler)
         
+        voltageCh.openWaitForAttachment(2000)
         
         # current channel initialization
         currentCh = VoltageRatioInput()
@@ -110,14 +135,29 @@ if __name__ == "__main__":
         currentCh.setIsHubPortDevice(True)
         currentCh.setOnVoltageRatioChangeHandler(currentChangeHandler)
         
-        currentCh.openWaitForAttachment(1000)
+        currentCh.openWaitForAttachment(2000)
+
+        powerThread  = threading.Thread(target = calculatePower, args=(run_event,))
+        if powerThread is not None:
+            powerThread.start()
+            
+        atexit.register(exitHandler, run_event)
+        app.run(debug=True, host='0.0.0.0')
 
     except PhidgetException as PE:
         print("Phidget Exception:\n{0}".format(PE))
-        
-    while True:
-        power = current * voltage
+        exitHandler(run_event)
+
+    except KeyboardInterrupt:
+        print("keyboard interrupt")
+        exitHandler(run_event)
+
+    except Exception as e:
+        print("Unknown exception:\n{0}".format(e))
+        exitHandler(run_event)
     
+        
+        
     '''
     currentThread = threading.Thread(target = getCurrentVal, args = (currentCh))
     voltageThread = threading.Thread(target = getVoltageVal, args = (voltageCh))
@@ -127,12 +167,7 @@ if __name__ == "__main__":
             thread.start()
     '''
     
-    powerThread   = threading.Thread(target = calculatePower, args = ())
-    if powerThread is not None:
-        powerThread.start()
-        
-    atexit.register(exitHandler)
-    app.run(threaded=True, debug=True, host='0.0.0.0')
+    
 
 
 
