@@ -17,7 +17,7 @@
 
             async function getData(){
                 const Http = new XMLHttpRequest();
-                const url='http://localhost:5000/getVals';
+                const url='http://192.168.43.31:5000/getVals';
                 Http.open("GET", url);
                 Http.send();
 
@@ -37,14 +37,14 @@
             async function startPlots(obj) {
 
                 //Plotly.plot('chart_current',[{
-                    y:[obj.current],
-                    type:'line'
-                }]);
+                //    y:[obj.current],
+                //    type:'line'
+                //}]);
 
                 //Plotly.plot('chart_voltage',[{
-                    y:[obj.voltage],
-                    type:'line'
-                }]);
+                //    y:[obj.voltage],
+                //    type:'line'
+                //}]);
 
                 Plotly.plot('chart_power',[{
                     y:[obj.power],
@@ -64,16 +64,16 @@
 
                 if (count > 20) {
                     //Plotly.relayout('chart_current', {
-                        xaxis: {
-                            range: [count - 20, count]
-                        }
-                    });
+                    //    xaxis: {
+                    //        range: [count - 20, count]
+                    //    }
+                    //});
 
                     //Plotly.relayout('chart_voltage', {
-                        xaxis: {
-                            range: [count - 20, count]
-                        }
-                    });
+                    //    xaxis: {
+                    //        range: [count - 20, count]
+                    //    }
+                    //});
 
                     Plotly.relayout('chart_power', {
                         xaxis: {
