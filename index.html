@@ -9,7 +9,9 @@
 
         <!-- <div id="chart_current" ></div>
         <div id="chart_voltage" ></div> -->
-        <div id="chart_power" style="width: 50%; height: 60%;"></div>
+        <center>
+            <div id="chart_power" style="width: 50%; height: 60%;"></div>
+        </center>
 
         <div>
             <div>
@@ -137,7 +139,8 @@
 
             async function plotchar(obj){
                 
-                Plotly.extendTraces('chart_power',  { y: [[Math.random()]], x: [[obj.time]] }, [0]);
+                // Plotly.extendTraces('chart_power',  { y: [[Math.random()]], x: [[obj.time]] }, [0]);
+                Plotly.extendTraces('chart_power',  { y: [[obj.power]], x: [[obj.time]] }, [0]);
 
                 time = Math.floor(obj.time);
                 
