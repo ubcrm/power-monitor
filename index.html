@@ -7,13 +7,42 @@
 
     <body>
 
-        <div id="chart_current" ></div>
-        <div id="chart_voltage" ></div>
-        <div id="chart_power" ></div>
+        <!-- <div id="chart_current" ></div>
+        <div id="chart_voltage" ></div> -->
+        <div id="chart_power" style="width: 50%; height: 60%;"></div>
+
+        <div>
+            <div>
+                <div style="display:inline-block">Power (W):   </div><div id="power_value" style="display:inline-block"></div>
+            </div>
+            <div>
+                <div style="display:inline-block">Current (A):   </div><div id="current_value" style="display:inline-block"></div>
+            </div>
+            <div>
+                <div style="display:inline-block">Voltage (V):  </div><div id="voltage_value" style="display:inline-block"></div>
+            </div>
+            <div>
+                <div style="display:inline-block">Max Power (W):  </div><div id="max_pow_value" style="display:inline-block"></div>
+            </div>
+        </div>
 
         <script>
 
+            let maxPow = 0
             let started = 0;
+
+            async function resetTime(){
+                const Http = new XMLHttpRequest();
+                const url='http://192.168.43.31:5000/setTime';
+                Http.open("GET", url);
+                Http.send();
+
+                Http.onreadystatechange = function () {
+                    if (this.readyState == 4 && this.status == 200){
+                        console.log(Http.responseText)
+                    }
+                }
+            }
 
             async function getData(){
                 const Http = new XMLHttpRequest();
@@ -34,6 +63,55 @@
                 }
             }
 
+            var layout = {
+                    title: {
+                        text:'Power Monitoring',
+                        font: {
+                        family: 'Courier New, monospace',
+                        size: 24
+                        },
+                        xref: 'paper',
+                        x: 0.05,
+                    },
+                    xaxis: {
+                        showgrid: true,
+                        zeroline: true,
+                        gridcolor: '#bdbdbd',
+                        gridwidth: 2,
+                        zerolinecolor: '#969696',
+                        zerolinewidth: 4,
+                        linecolor: '#636363',
+                        linewidth: 6,
+                        title: {
+                            text: 'Time (s)',
+                            font: {
+                                family: 'Courier New, monospace',
+                                size: 18,
+                                color: '#7f7f7f'
+                                }
+                        },
+                    },
+                    yaxis: {
+                        showgrid: true,
+                        zeroline: true,
+                        gridcolor: '#bdbdbd',
+                        gridwidth: 2,
+                        zerolinecolor: '#969696',
+                        zerolinewidth: 4,
+                        linecolor: '#636363',
+                        linewidth: 6,
+                        title: {
+                            text: 'Power (W)',
+                            font: {
+                                family: 'Courier New, monospace',
+                                size: 18,
+                                color: '#7f7f7f'
+                            }
+                        }
+                    }
+                };
+
+
             async function startPlots(obj) {
 
                 //Plotly.plot('chart_current',[{
@@ -46,48 +124,63 @@
                 //    type:'line'
                 //}]);
 
+                
                 Plotly.plot('chart_power',[{
                     y:[obj.power],
+                    x:[obj.time],
                     type:'line'
-                }]);
+                }], layout);
                 console.log("initialized plot");
             }
             
-            let count = 0;
+            let time = 0;
 
             async function plotchar(obj){
                 
-                //Plotly.extendTraces('chart_current',{ y: [[obj.current]] }, [0]);
-                //Plotly.extendTraces('chart_voltage',{ y: [[obj.voltage]] }, [0]);
-                Plotly.extendTraces('chart_power',  { y: [[obj.power]] }, [0]);
+                Plotly.extendTraces('chart_power',  { y: [[Math.random()]], x: [[obj.time]] }, [0]);
 
-                count++;
+                time = Math.floor(obj.time);
+                
 
-                if (count > 20) {
-                    //Plotly.relayout('chart_current', {
-                    //    xaxis: {
-                    //        range: [count - 20, count]
-                    //    }
-                    //});
+                if (obj.power > maxPow) {
+                    maxPow = obj.power;
+                }
 
-                    //Plotly.relayout('chart_voltage', {
-                    //    xaxis: {
-                    //        range: [count - 20, count]
-                    //    }
-                    //});
+                document.getElementById('power_value').innerHTML = obj.power;
+                document.getElementById('current_value').innerHTML = obj.current;
+                document.getElementById('voltage_value').innerHTML = obj.voltage;
+                document.getElementById('max_pow_value').innerHTML = maxPow;
 
+                if (time > 10) {
+ 
                     Plotly.relayout('chart_power', {
                         xaxis: {
-                            range: [count - 20, count]
+                        showgrid: true,
+                        zeroline: true,
+                        gridcolor: '#bdbdbd',
+                        gridwidth: 2,
+                        zerolinecolor: '#969696',
+                        zerolinewidth: 4,
+                        linecolor: '#636363',
+                        linewidth: 6,
+                        title: {
+                            text: 'Time (s)',
+                            font: {
+                                family: 'Courier New, monospace',
+                                size: 18,
+                                color: '#7f7f7f'
+                                }
+                        },
+                            range: [time - 10, time]
                         }
                     });
                 }
             }
             
-            
+            resetTime();
             getData();
 
-            setInterval(getData, 4000);
+            setInterval(getData, 500);
 
         </script>
 
