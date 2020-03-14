@@ -22,7 +22,7 @@ app.get("/getVals", function(req, res) {
     postBodies.shift();
     res.json(responseJSON);
   } else {
-    res.send("NOT AVAILABLE");
+    res.json("NOT AVAILABLE");
   }
 });
 
