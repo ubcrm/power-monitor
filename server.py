@@ -20,7 +20,6 @@ current = 0
 voltage = 0
 power = 0
 
-stopThread = 0
 powerThread = None
 
 '''
@@ -71,7 +70,6 @@ def voltageChangeHandler(self, voltage_update):
         
 def calculatePower(run_event):
     global current, voltage, power
-    global stopThread
     # while True:
     #     power = current * voltage
 
@@ -79,8 +77,6 @@ def calculatePower(run_event):
         try:
             # time.sleep(0.5)
             power = current * voltage
-            if stopThread == 1:
-                break
             # print("power is {0}, current is {1}, voltage is {2}".format(power, current, voltage))
         except KeyboardInterrupt:
             break
@@ -92,7 +88,6 @@ def exitHandler(run_event):
     global voltageCh
     global currentCh
     global powerThread
-    global stopThread
 
     run_event.clear()
 
@@ -142,7 +137,7 @@ if __name__ == "__main__":
             powerThread.start()
             
         atexit.register(exitHandler, run_event)
-        app.run(debug=True, host='0.0.0.0')
+        app.run(threaded=True, debug=True, host='0.0.0.0')
 
     except PhidgetException as PE:
         print("Phidget Exception:\n{0}".format(PE))
@@ -155,18 +150,6 @@ if __name__ == "__main__":
     except Exception as e:
         print("Unknown exception:\n{0}".format(e))
         exitHandler(run_event)
-    
-        
-        
-    '''
-    currentThread = threading.Thread(target = getCurrentVal, args = (currentCh))
-    voltageThread = threading.Thread(target = getVoltageVal, args = (voltageCh))
-    
-    for thread in threads:
-        if thread is not None:
-            thread.start()
-    '''
-    
     
 
 

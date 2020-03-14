@@ -1,0 +1,12 @@
+{
+    "name": "power-monitor",
+    "version": "1.0.0",
+    "scripts": {
+        "start": "node server.js"
+    },
+    "author": "Shreyans Kulshrestha",
+    "license": "MIT",
+    "dependencies": {
+        "express": "^4.17.1"
+    }
+}

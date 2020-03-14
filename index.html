@@ -14,6 +14,9 @@
         </center>
 
         <div>
+            <button id="start">Start Plot</button>
+            <button id="stop">Stop Plot</button>
+            <button id="reset">Reset Plot time</button>
             <div>
                 <div style="display:inline-block">Power (W):   </div><div id="power_value" style="display:inline-block"></div>
             </div>
@@ -114,22 +117,9 @@
                 };
 
 
-            async function startPlots(obj) {
-
-                //Plotly.plot('chart_current',[{
-                //    y:[obj.current],
-                //    type:'line'
-                //}]);
-
-                //Plotly.plot('chart_voltage',[{
-                //    y:[obj.voltage],
-                //    type:'line'
-                //}]);
-
+            function startPlot(obj) {
                 
                 Plotly.plot('chart_power',[{
-                    y:[obj.power],
-                    x:[obj.time],
                     type:'line'
                 }], layout);
                 console.log("initialized plot");
@@ -180,10 +170,21 @@
                 }
             }
             
-            resetTime();
-            getData();
+            var reqLoop = null;
+            document.getElementById('start').onclick = () => {
+                getData();
+                reqLoop = setInterval(getData, 500);
+            };
 
-            setInterval(getData, 500);
+            document.getElementById('stop').onclick = () => {
+                if (reqLoop == null) {
+                    alert('Not started yet, cannot perform stop operation');
+                } else {
+                    clearInterval(reqLoop);
+                }
+            };
+
+            document.getElementById('reset').onclick = resetTime();
 
         </script>
 
