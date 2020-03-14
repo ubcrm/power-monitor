@@ -59,7 +59,7 @@
                     if (this.readyState == 4 && this.status == 200){
                         console.log(Http.responseText)
                         if (started == 0) {
-                            startPlots(JSON.parse(Http.responseText));
+                            redrawPlot(JSON.parse(Http.responseText));
                             started = 1;
                         } else {
                             plotchar(JSON.parse(Http.responseText));
@@ -68,7 +68,7 @@
                 }
             }
 
-            var layout = {
+            let layout = {
                     title: {
                         text:'Power Monitoring',
                         font: {
@@ -113,15 +113,26 @@
                                 color: '#7f7f7f'
                             }
                         }
-                    }
+                    },
+                    mode: 'lines+markers'
                 };
 
+            let initialData = [{
+                    x: [0],
+                    y: [0],
+                    type:'line',
+                    name: 'Power'
+                }];
+
+            function redrawPlot(x, y) {
+                Plotly.restyle('chart_power', 'x', [[x]]);
+                Plotly.restyle('chart_power', 'y', [[y]]);
+            }
 
             function startPlot(obj) {
                 
-                Plotly.plot('chart_power',[{
-                    type:'line'
-                }], layout);
+                Plotly.plot('chart_power',
+                    initialData, layout);
                 console.log("initialized plot");
             }
             
@@ -186,6 +197,7 @@
                 }
             };
 
+            startPlot();
             document.getElementById('reset').onclick = resetTime();
 
         </script>
