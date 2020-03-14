@@ -38,14 +38,14 @@ app.get("/resetTime", function(req, res) {
 app.post("/updateVals", function(req, res) {
   console.log(req);
   console.log(req.data);
-  let reqJSON = JSON.parse(req.body);
-  console.log(reqJSON);
-  postBodies.push(reqJSON);
+  // let reqJSON = JSON.parse(req.body);
+  // console.log(reqJSON);
+  // postBodies.push(reqJSON);
 
-  console.log("received, ", postBodies);
-  if (!(Array.isArray(postBodies) && postBodies.length)) {
-    initialTime = reqJSON.time;
-  }
+  // console.log("received, ", postBodies);
+  // if (!(Array.isArray(postBodies) && postBodies.length)) {
+  //   initialTime = reqJSON.time;
+  // }
 
   res.send("OK");
 });
