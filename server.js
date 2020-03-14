@@ -22,7 +22,7 @@ app.get("/getVals", function(req, res) {
   if (Array.isArray(postBodies) && postBodies.length) {   
     postBodies.sort((body_a, body_b) => body_a.time - body_b.time);
 
-    let responseJSON = JSON.parse(postBodies[0]);
+    let responseJSON = postBodies[0];
     responseJSON.time = responseJSON.time - initialTime;
     postBodies.shift();
     console.log("sending, ", postBodies);
