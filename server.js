@@ -1,4 +1,5 @@
 let express = require('express');
+let bodyParser = require('body-parser')
 let app = express();
 
 let port = process.env.PORT || 8080;
@@ -8,7 +9,9 @@ let postBodies = [];
 let initialTime = 0;
 
 app.use(express.static(__dirname));
-app.use(express.bodyParser());
+// parse application/json
+app.use(bodyParser.json())
+ 
 app.use(app.router);
 
 app.get("/", function(req, res) {
