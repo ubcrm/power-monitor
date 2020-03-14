@@ -8,11 +8,8 @@ let postBodies = [];
 let initialTime = 0;
 
 app.use(express.static(__dirname));
-
-app.configure(function(){
-  app.use(express.bodyParser());
-  app.use(app.router);
-});
+app.use(express.bodyParser());
+app.use(app.router);
 
 app.get("/", function(req, res) {
   res.render("index");
