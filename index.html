@@ -58,7 +58,7 @@
                 Http.onreadystatechange = function () {
                     if (this.readyState == 4 && this.status == 200){
                         console.log(Http.responseText)
-                        if (Http.responseText.localeCompare("NOT AVAILABLE") == 0){
+                        if (Http.responseText != "NOT AVAILABLE"){
                             if (started == 0) {
                                 redrawPlot(JSON.parse(Http.responseText));
                                 started = 1;
@@ -127,6 +127,7 @@
                 }];
 
             function redrawPlot(x, y) {
+                console.log('redrawplot')
                 Plotly.restyle('chart_power', 'x', [[x]]);
                 Plotly.restyle('chart_power', 'y', [[y]]);
             }
