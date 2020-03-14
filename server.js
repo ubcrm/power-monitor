@@ -20,6 +20,7 @@ app.get("/getVals", function(req, res) {
     let responseJSON = postBodies[0];
     responseJSON.time = responseJSON.time - initialTime;
     postBodies.shift();
+    console.log("sending, ", postBodies);
     res.json(responseJSON);
   } else {
     res.json("NOT AVAILABLE");
@@ -30,6 +31,7 @@ app.get("/resetTime", function(req, res) {
   initialTime = 0;
   postBodies = [];
 
+  console.log("time reset, ", postBodies);
   res.send("OK");
 });
 
@@ -37,6 +39,7 @@ app.post("/updateVals", function(req, res) {
   let reqJSON = req.body;
   postBodies.push(reqJSON);
 
+  console.log("received, ", postBodies);
   if (!(Array.isArray(postBodies) && postBodies.length)) {
     initialTime = reqJSON.time;
   }
