@@ -143,44 +143,48 @@
 
             async function plotchar(obj){
                 
-                // Plotly.extendTraces('chart_power',  { y: [[Math.random()]], x: [[obj.time]] }, [0]);
-                Plotly.extendTraces('chart_power',  { y: [[obj.power]], x: [[obj.time]] }, [0]);
+                if (obj.power != undefined && obj.time != undefined){
+                    // Plotly.extendTraces('chart_power',  { y: [[Math.random()]], x: [[obj.time]] }, [0]);
+                    Plotly.extendTraces('chart_power',  { y: [[obj.power]], x: [[obj.time]] }, [0]);
 
-                time = Math.floor(obj.time);
-                
+                    time = Math.floor(obj.time);
+                    
 
-                if (obj.power > maxPow) {
-                    maxPow = obj.power;
-                }
+                    if (obj.power > maxPow) {
+                        maxPow = obj.power;
+                    }
 
-                document.getElementById('power_value').innerHTML = obj.power;
-                document.getElementById('current_value').innerHTML = obj.current;
-                document.getElementById('voltage_value').innerHTML = obj.voltage;
-                document.getElementById('max_pow_value').innerHTML = maxPow;
+                    document.getElementById('power_value').innerHTML = obj.power;
+                    document.getElementById('current_value').innerHTML = obj.current;
+                    document.getElementById('voltage_value').innerHTML = obj.voltage;
+                    document.getElementById('max_pow_value').innerHTML = maxPow;
 
-                if (time > 10) {
- 
-                    Plotly.relayout('chart_power', {
-                        xaxis: {
-                        showgrid: true,
-                        zeroline: true,
-                        gridcolor: '#bdbdbd',
-                        gridwidth: 2,
-                        zerolinecolor: '#969696',
-                        zerolinewidth: 4,
-                        linecolor: '#636363',
-                        linewidth: 6,
-                        title: {
-                            text: 'Time (s)',
-                            font: {
-                                family: 'Courier New, monospace',
-                                size: 18,
-                                color: '#7f7f7f'
-                                }
-                        },
-                            range: [time - 10, time]
-                        }
-                    });
+                    if (time > 10) {
+    
+                        Plotly.relayout('chart_power', {
+                            xaxis: {
+                            showgrid: true,
+                            zeroline: true,
+                            gridcolor: '#bdbdbd',
+                            gridwidth: 2,
+                            zerolinecolor: '#969696',
+                            zerolinewidth: 4,
+                            linecolor: '#636363',
+                            linewidth: 6,
+                            title: {
+                                text: 'Time (s)',
+                                font: {
+                                    family: 'Courier New, monospace',
+                                    size: 18,
+                                    color: '#7f7f7f'
+                                    }
+                            },
+                                range: [time - 10, time]
+                            }
+                        });
+                    }
+                } else {
+                    console.log('Not plotting undefined points')
                 }
             }
             
