@@ -36,7 +36,8 @@ app.get("/resetTime", function(req, res) {
 });
 
 app.post("/updateVals", function(req, res) {
-  console.log(req.body);
+  console.log(req);
+  console.log(req.data);
   let reqJSON = JSON.parse(req.body);
   console.log(reqJSON);
   postBodies.push(reqJSON);
