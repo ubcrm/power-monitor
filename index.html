@@ -58,11 +58,13 @@
                 Http.onreadystatechange = function () {
                     if (this.readyState == 4 && this.status == 200){
                         console.log(Http.responseText)
-                        if (started == 0) {
-                            redrawPlot(JSON.parse(Http.responseText));
-                            started = 1;
-                        } else {
-                            plotchar(JSON.parse(Http.responseText));
+                        if (Http.responseText.localeCompare("NOT AVAILABLE") == 0){
+                            if (started == 0) {
+                                redrawPlot(JSON.parse(Http.responseText));
+                                started = 1;
+                            } else {
+                                plotchar(JSON.parse(Http.responseText));
+                            }
                         }
                     }
                 }
