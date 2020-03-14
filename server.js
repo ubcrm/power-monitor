@@ -12,7 +12,7 @@ app.use(express.static(__dirname));
 // parse application/json
 app.use(bodyParser.json())
  
-app.use(app.router);
+// app.use(app.router);
 
 app.get("/", function(req, res) {
   res.render("index");
