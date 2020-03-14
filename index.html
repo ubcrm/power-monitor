@@ -38,7 +38,7 @@
 
             async function resetTime(){
                 const Http = new XMLHttpRequest();
-                const url='http://192.168.43.31:5000/setTime';
+                const url='http://power-monitor-phidgets.herokuapp.com/resetTime';
                 Http.open("GET", url);
                 Http.send();
 
@@ -51,7 +51,7 @@
 
             async function getData(){
                 const Http = new XMLHttpRequest();
-                const url='http://192.168.43.31:5000/getVals';
+                const url='http://power-monitor-phidgets.herokuapp.com/getVals';
                 Http.open("GET", url);
                 Http.send();
 
@@ -174,12 +174,14 @@
             document.getElementById('start').onclick = () => {
                 getData();
                 reqLoop = setInterval(getData, 500);
+                console.log('starting');
             };
 
             document.getElementById('stop').onclick = () => {
                 if (reqLoop == null) {
                     alert('Not started yet, cannot perform stop operation');
                 } else {
+                    console.log('stopping');
                     clearInterval(reqLoop);
                 }
             };

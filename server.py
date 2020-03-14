@@ -1,157 +1,151 @@
-from flask import Flask, jsonify, send_file, render_template
+import time
+import requests
+import threading
+import atexit
+import json
+import urllib
+
+from flask import Flask, jsonify
 from flask_cors import CORS
 
-#import _thread
-import threading
-
-import atexit
-import time
-
-from Phidget22.Phidget import *
-from Phidget22.Devices.VoltageInput import *
-from Phidget22.Devices.VoltageRatioInput import *
 from Phidget22.Devices.DigitalOutput import *
 from Phidget22.PhidgetException import *
+from Phidget22.Phidget import *
+from Phidget22.Devices.VoltageRatioInput import *
+from Phidget22.Devices.VoltageInput import *
 
 app = Flask(__name__)
 CORS(app)
 
-current = 0
 voltage = 0
-power = 0
+current = 0
+startTime = time.time()
+serverUpdateThread = None
 
-powerThread = None
+url = "http://power-monitor-phidgets.herokuapp.com/updateVals"
+headers = {
+    "Content-Type" : "application/json"
+}
 
-'''
-currentThread = None
-voltageThread = None
-powerThread = None
 
-threads = [currentThread, voltageThread, powerThread]
-'''
+class StoppableThread(threading.Thread):
+    """Thread class with a stop() method. The thread itself has to check
+    regularly for the stopped() condition."""
 
-voltageCh = None
-currentCh = None
+    def __init__(self):
+        super(StoppableThread, self).__init__()
+        self._stop_event = threading.Event()
 
-# @app.route('/', methods=['GET'])
-# def getIndex():
-#     return render_template("index.html")
+    def stop(self):
+        self._stop_event.set()
 
-@app.route('/getVals', methods=['GET'])
-def getIandV():
-    global current, voltage, power
-    # while (power == None):
-    #     while (voltage == None):
-    #         while (current == None):
-    #             pass
-    
-    return jsonify({"current": current,"voltage": voltage, "power": power})
+    def join(self, *args, **kwargs):
+        self.stop()
+        super(StoppableThread,self).join(*args, **kwargs)
 
-'''
-def getCurrentVal(ch):
-    global current
-    while True:
-        current = ch.getCurrent()
-        
-def getVoltageVal(ch):
+    def run(self):
+        while not self._stop_event.is_set():
+            print("Still running!")
+            time.sleep(0.5)
+        print("stopped!")
+
+# @app.route('/getVals', methods=['GET'])
+# def getValues():
+#     global voltage, current, startTime
+#     return jsonify({'current': current, 'voltage':voltage, 'power':voltage * current, 'time':time.time() - startTime})
+
+# @app.route('/setTime', methods=['GET'])
+# def resetTime():
+#     global startTime
+#     startTime = time.time()
+#     return "OK"
+
+def updateWebServer():
+    global voltage, current, startTime, headers
+    while (True):
+        try:
+            jsonData = json.dumps({'current': current, 'voltage':voltage, 'power':voltage * current, 'time':time.time() - startTime}).encode("utf-8")
+            req = urllib.request.Request(url, jsonData, headers)
+            req.add_header('Content-Length', len(jsonData))
+            res = urllib.request.urlopen(req)
+            print(res)
+        except Exception as e:
+            print(e)
+            pass
+
+    return 0
+
+def on_new_voltage_reading(self, voltage_update):
     global voltage
-    while True:
-        voltage = ch.getVoltage()
-   
-'''
+    voltage = voltage_update
 
-def currentChangeHandler(self, current_update):
+
+def on_new_current_reading(self, current_update):
     global current
     current = current_update * 75.85973 - 37.76251
 
-def voltageChangeHandler(self, voltage_update):
-    global voltage
-    voltage = voltage_update
+def exit_handler(voltage_sensor, current_sensor):
+    global current, voltage, serverUpdateThread
+    serverUpdateThread.join()
+
+    if voltage_sensor is not None:
+        voltage_sensor.close()
         
-def calculatePower(run_event):
-    global current, voltage, power
-    # while True:
-    #     power = current * voltage
+    if current_sensor is not None:
+        current_sensor.close()
 
-    while run_event.is_set():
-        try:
-            # time.sleep(0.5)
-            power = current * voltage
-            # print("power is {0}, current is {1}, voltage is {2}".format(power, current, voltage))
-        except KeyboardInterrupt:
-            break
-        except:
-            break
-        
-        
-def exitHandler(run_event):
-    global voltageCh
-    global currentCh
-    global powerThread
-
-    run_event.clear()
-
-    stopThread = 1
+def main():
+    global current, voltage, app, serverUpdateThread
     
-    if voltageCh is not None:
-        voltageCh.close()
-    
-    if currentCh is not None:
-        currentCh.close()
-    
-    if powerThread is not None:
-        powerThread.join()
-
-    '''
-    for thread in threads:
-        if thread is not None:
-            thread.join()
-
-    '''
-    
-if __name__ == "__main__":
-    #_thread.start_new_thread(doThreading, ())
-    
-    run_event = threading.Event()
-    run_event.set()
+    voltage_sensor = None
+    current_sensor = None
+    serverUpdateThread = StoppableThread(target=updateWebServer)
 
     try:
-        # voltage channel initialization
-        voltageCh = VoltageInput()
-        voltageCh.setHubPort(0)
-        voltageCh.setIsHubPortDevice(False)
-        voltageCh.setOnVoltageChangeHandler(voltageChangeHandler)
+        voltage_sensor = VoltageInput()
+        current_sensor = VoltageRatioInput()
+
+        voltage_sensor.setHubPort(0)
+        voltage_sensor.setIsHubPortDevice(False)
+        voltage_sensor.setOnVoltageChangeHandler(on_new_voltage_reading)
+
+        current_sensor.setHubPort(1)
+        current_sensor.setIsHubPortDevice(True)
+        current_sensor.setOnVoltageRatioChangeHandler(on_new_current_reading)
+
+        current_sensor.openWaitForAttachment(1000)
         
-        voltageCh.openWaitForAttachment(2000)
+        serverUpdateThread.start()
+
+        atexit.register(exit_handler)
+        app.run(host='0.0.0.0')
+        voltage_sensor.close()
+        current_sensor.close()
         
-        # current channel initialization
-        currentCh = VoltageRatioInput()
-        currentCh.setHubPort(1)
-        currentCh.setIsHubPortDevice(True)
-        currentCh.setOnVoltageRatioChangeHandler(currentChangeHandler)
+    except PhidgetException as e:
+        print(e)
+        exit_handler(voltage_sensor, current_sensor)
         
-        currentCh.openWaitForAttachment(2000)
+    except KeyboardInterrupt as key:
+        print(key)
+        exit_handler(voltage_sensor, current_sensor)
 
-        powerThread  = threading.Thread(target = calculatePower, args=(run_event,))
-        if powerThread is not None:
-            powerThread.start()
-            
-        atexit.register(exitHandler, run_event)
-        app.run(threaded=True, debug=True, host='0.0.0.0')
-
-    except PhidgetException as PE:
-        print("Phidget Exception:\n{0}".format(PE))
-        exitHandler(run_event)
-
-    except KeyboardInterrupt:
-        print("keyboard interrupt")
-        exitHandler(run_event)
-
-    except Exception as e:
-        print("Unknown exception:\n{0}".format(e))
-        exitHandler(run_event)
+    #voltage_sensor.openWaitForAttachment(1000)
     
 
+    #file = open("power_data.txt", "a")
 
+    #try:
+    #    while True:
+    #        time.sleep(0.05)
+    #        message = "voltage: %f ; current: %f ; power: %f" % (voltage, current, voltage * current)
+    #        print(message)
+    #        file.write(message + "\n")
+    #
+    #except KeyboardInterrupt:
+    #    print("Ending Program")
+    #file.close()
+    
+    
 
-
+main()
