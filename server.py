@@ -92,7 +92,7 @@ def on_new_voltage_reading(self, voltage_update):
     global voltage, current, sessionFile
     voltage = voltage_update
     if sessionFile is not None:
-        power = voltage * current
+        power = voltage * current / 1000
         sessionFile.write(str(power) + " W " + str(datetime.now()))
 
 
@@ -100,7 +100,7 @@ def on_new_current_reading(self, current_update):
     global current, voltage, sessionFile
     current = current_update * 75.85973 - 37.76251
     if sessionFile is not None:
-        power = voltage * current
+        power = voltage * current / 1000
         sessionFile.write(str(power) + " W " + str(datetime.now()))
 
 def exit_handler(voltage_sensor, current_sensor):
