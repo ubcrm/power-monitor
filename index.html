@@ -17,17 +17,19 @@
             <button id="start">Start Plot</button>
             <button id="stop">Stop Plot</button>
             <button id="reset">Reset Plot time</button>
-            <div>
-                <div style="display:inline-block">Power (W):   </div><div id="power_value" style="display:inline-block"></div>
-            </div>
-            <div>
-                <div style="display:inline-block">Current (A):   </div><div id="current_value" style="display:inline-block"></div>
-            </div>
-            <div>
-                <div style="display:inline-block">Voltage (V):  </div><div id="voltage_value" style="display:inline-block"></div>
-            </div>
-            <div>
-                <div style="display:inline-block">Max Power (W):  </div><div id="max_pow_value" style="display:inline-block"></div>
+            <div style="font-size: 5em;">
+                <div>
+                    <div style="display:inline-block">Power (W):   </div><div id="power_value" style="display:inline-block"></div>
+                </div>
+                <div>
+                    <div style="display:inline-block">Current (mA):   </div><div id="current_value" style="display:inline-block"></div>
+                </div>
+                <div>
+                    <div style="display:inline-block">Voltage (V):  </div><div id="voltage_value" style="display:inline-block"></div>
+                </div>
+                <div>
+                    <div style="display:inline-block">Max Power (W):  </div><div id="max_pow_value" style="display:inline-block"></div>
+                </div>
             </div>
         </div>
 
@@ -211,7 +213,7 @@
             var time = 0;
 
             async function writeData(obj) {
-                document.getElementById('power_value').innerHTML = obj.power;
+                document.getElementById('power_value').innerHTML = obj.power / 1000;
                 document.getElementById('current_value').innerHTML = obj.current;
                 document.getElementById('voltage_value').innerHTML = obj.voltage;
                 document.getElementById('max_pow_value').innerHTML = maxPow;
