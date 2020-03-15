@@ -17,60 +17,28 @@
             <button id="start">Start Plot</button>
             <button id="stop">Stop Plot</button>
             <button id="reset">Reset Plot time</button>
-            <div>
-                <div style="display:inline-block">Power (W):   </div><div id="power_value" style="display:inline-block"></div>
-            </div>
-            <div>
-                <div style="display:inline-block">Current (A):   </div><div id="current_value" style="display:inline-block"></div>
-            </div>
-            <div>
-                <div style="display:inline-block">Voltage (V):  </div><div id="voltage_value" style="display:inline-block"></div>
-            </div>
-            <div>
-                <div style="display:inline-block">Max Power (W):  </div><div id="max_pow_value" style="display:inline-block"></div>
+            <div style="font-size: 3.2em;">
+                <div>
+                    <div style="display:inline-block">Power (W):   </div><div id="power_value" style="display:inline-block"></div>
+                </div>
+                <div>
+                    <div style="display:inline-block">Current (mA):   </div><div id="current_value" style="display:inline-block"></div>
+                </div>
+                <div>
+                    <div style="display:inline-block">Voltage (V):  </div><div id="voltage_value" style="display:inline-block"></div>
+                </div>
+                <div>
+                    <div style="display:inline-block">Max Power (W):  </div><div id="max_pow_value" style="display:inline-block"></div>
+                </div>
             </div>
         </div>
 
         <script>
 
-            let maxPow = 0
-            let started = 0;
+            var maxPow = 0
+            var started = 0;
 
-            async function resetTime(){
-                const Http = new XMLHttpRequest();
-                const url='http://power-monitor-phidgets.herokuapp.com/resetTime';
-                Http.open("GET", url);
-                Http.send();
-
-                Http.onreadystatechange = function () {
-                    if (this.readyState == 4 && this.status == 200){
-                        console.log(Http.responseText)
-                    }
-                }
-            }
-
-            async function getData(){
-                const Http = new XMLHttpRequest();
-                const url='http://power-monitor-phidgets.herokuapp.com/getVals';
-                Http.open("GET", url);
-                Http.send();
-
-                Http.onreadystatechange = function () {
-                    if (this.readyState == 4 && this.status == 200){
-                        console.log(Http.responseText)
-                        if (Http.responseText.localeCompare("NOT AVAILABLE") == 0){
-                            if (started == 0) {
-                                redrawPlot(JSON.parse(Http.responseText));
-                                started = 1;
-                            } else {
-                                plotchar(JSON.parse(Http.responseText));
-                            }
-                        }
-                    }
-                }
-            }
-
-            let layout = {
+            var layout = {
                     title: {
                         text:'Power Monitoring',
                         font: {
@@ -95,7 +63,7 @@
                                 family: 'Courier New, monospace',
                                 size: 18,
                                 color: '#7f7f7f'
-                                }
+                             }
                         },
                     },
                     yaxis: {
@@ -119,14 +87,118 @@
                     mode: 'lines+markers'
                 };
 
-            let initialData = [{
+            var initialData = [{
                     x: [0],
                     y: [0],
                     type:'line',
                     name: 'Power'
                 }];
 
+            async function resetTime(){
+                const Http = new XMLHttpRequest();
+                const url='http://power-monitor-phidgets.herokuapp.com/resetTime';
+                Http.open("GET", url);
+                Http.send();
+
+                Http.onreadystatechange = function () {
+                    if (this.readyState == 4 && this.status == 200){
+                        console.log(Http.responseText)
+                        var chart = document.getElementById('chart_power');
+                        if (chart.data != undefined && chart.layout!=undefined) {
+                            if (chart.data.length > 0) {
+                                // Plotly.deleteTraces('chart_power', 0);
+                                Plotly.newPlot('chart_power', initialData, layout);
+                                Plotly.relayout('chart_power', {
+                                    xaxis: {
+                                        showgrid: true,
+                                        zeroline: true,
+                                        gridcolor: '#bdbdbd',
+                                        gridwidth: 2,
+                                        zerolinecolor: '#969696',
+                                        zerolinewidth: 4,
+                                        linecolor: '#636363',
+                                        linewidth: 6,
+                                        title: {
+                                            text: 'Time (s)',
+                                            font: {
+                                                family: 'Courier New, monospace',
+                                                size: 18,
+                                                color: '#7f7f7f'
+                                                }
+                                            },
+                                            range: [-1, 1]
+                                        }  
+                                    });
+
+                                started = 0;
+                            }
+                        }
+                    }
+                }
+            }
+
+            async function getData(){
+                const Http = new XMLHttpRequest();
+                const url='http://power-monitor-phidgets.herokuapp.com/getVals';
+                Http.open("GET", url);
+                Http.send();
+
+                Http.onreadystatechange = function () {
+                    if (this.readyState == 4 && this.status == 200){
+                        console.log(Http.responseText)
+                        obj = JSON.parse(Http.responseText);
+                    
+                        if (obj != "NOT AVAILABLE"){
+                            if (started == 0) {
+                                redrawPlot(obj);
+                                started = 1;
+                            } else {
+                                var chart = document.getElementById('chart_power');
+
+                                if (chart.data.length == 0) {
+                                    Plotly.newPlot('chart_power', initialData, layout);
+                                    started = 0;
+                                }
+
+                                Plotly.relayout('chart_power', {
+                                    xaxis: {
+                                        autorange: true,
+                                        showgrid: true,
+                                        zeroline: true,
+                                        gridcolor: '#bdbdbd',
+                                        gridwidth: 2,
+                                        zerolinecolor: '#969696',
+                                        zerolinewidth: 4,
+                                        linecolor: '#636363',
+                                        linewidth: 6,
+                                        title: {
+                                            text: 'Time (s)',
+                                            font: {
+                                                family: 'Courier New, monospace',
+                                                size: 18,
+                                                color: '#7f7f7f'
+                                                }
+                                            }
+                                        }  
+                                    });
+
+                                writeData(obj);
+                                plotchar(obj);
+                            }
+                        }
+                    }
+                }
+            }
+
             function redrawPlot(x, y) {
+                console.log('redrawplot')
+                var chart = document.getElementById('chart_power');
+
+                // if (chart.data.length == 0) {
+                //     Plotly.newPlot('chart_power', initialData, layout);
+                // }
+
+                started = 0;
                 Plotly.restyle('chart_power', 'x', [[x]]);
                 Plotly.restyle('chart_power', 'y', [[y]]);
             }
@@ -138,60 +210,69 @@
                 console.log("initialized plot");
             }
             
-            let time = 0;
+            var time = 0;
 
-            async function plotchar(obj){
-                
-                // Plotly.extendTraces('chart_power',  { y: [[Math.random()]], x: [[obj.time]] }, [0]);
-                Plotly.extendTraces('chart_power',  { y: [[obj.power]], x: [[obj.time]] }, [0]);
-
-                time = Math.floor(obj.time);
-                
-
-                if (obj.power > maxPow) {
-                    maxPow = obj.power;
-                }
-
-                document.getElementById('power_value').innerHTML = obj.power;
+            async function writeData(obj) {
+                document.getElementById('power_value').innerHTML = obj.power / 1000;
                 document.getElementById('current_value').innerHTML = obj.current;
                 document.getElementById('voltage_value').innerHTML = obj.voltage;
                 document.getElementById('max_pow_value').innerHTML = maxPow;
+            }
 
-                if (time > 10) {
- 
-                    Plotly.relayout('chart_power', {
-                        xaxis: {
-                        showgrid: true,
-                        zeroline: true,
-                        gridcolor: '#bdbdbd',
-                        gridwidth: 2,
-                        zerolinecolor: '#969696',
-                        zerolinewidth: 4,
-                        linecolor: '#636363',
-                        linewidth: 6,
-                        title: {
-                            text: 'Time (s)',
-                            font: {
-                                family: 'Courier New, monospace',
-                                size: 18,
-                                color: '#7f7f7f'
-                                }
-                        },
-                            range: [time - 10, time]
-                        }
-                    });
+            async function plotchar(obj){
+                
+                if (obj.power != undefined && obj.time != undefined){
+                    // Plotly.extendTraces('chart_power',  { y: [[Math.random()]], x: [[obj.time]] }, [0]);
+                    
+                    Plotly.extendTraces('chart_power',  { y: [[obj.power]], x: [[obj.time]] }, [0]);
+
+                    time = Math.floor(obj.time);
+                    
+                    if (obj.power > maxPow) {
+                        maxPow = obj.power;
+                    }
+
+                    if (time > 10) {
+    
+                        Plotly.relayout('chart_power', {
+                            xaxis: {
+                            showgrid: true,
+                            zeroline: true,
+                            gridcolor: '#bdbdbd',
+                            gridwidth: 2,
+                            zerolinecolor: '#969696',
+                            zerolinewidth: 4,
+                            linecolor: '#636363',
+                            linewidth: 6,
+                            title: {
+                                text: 'Time (s)',
+                                font: {
+                                    family: 'Courier New, monospace',
+                                    size: 18,
+                                    color: '#7f7f7f'
+                                    }
+                            },
+                                range: [time - 10, time]
+                            }
+                        });
+                    }
+                } else {
+                    console.log('Not plotting undefined points')
                 }
             }
             
             var reqLoop = null;
             document.getElementById('start').onclick = () => {
                 getData();
-                reqLoop = setInterval(getData, 500);
+                if (reqLoop) {
+                    clearInterval(reqLoop);
+                }
+                reqLoop = setInterval(getData, 150);
                 console.log('starting');
             };
 
             document.getElementById('stop').onclick = () => {
-                if (reqLoop == null) {
+                if (!reqLoop) {
                     alert('Not started yet, cannot perform stop operation');
                 } else {
                     console.log('stopping');
@@ -199,8 +280,9 @@
                 }
             };
 
+            document.getElementById('reset').onclick = resetTime;
+            resetTime();
             startPlot();
-            document.getElementById('reset').onclick = resetTime();
 
         </script>
 
