@@ -36,48 +36,6 @@
             let maxPow = 0
             let started = 0;
 
-            async function resetTime(){
-                const Http = new XMLHttpRequest();
-                const url='http://power-monitor-phidgets.herokuapp.com/resetTime';
-                Http.open("GET", url);
-                Http.send();
-
-                Http.onreadystatechange = function () {
-                    if (this.readyState == 4 && this.status == 200){
-                        console.log(Http.responseText)
-                        let chart = document.getElementById('chart_power');
-                        if (chart.data != undefined && chart.layout!=undefined) {
-                            if (chart.data.length > 0) {
-                                Plotly.deleteTraces('chart_power', 0);
-                                startPlot();
-                                started = 0;
-                            }
-                        }
-                    }
-                }
-            }
-
-            async function getData(){
-                const Http = new XMLHttpRequest();
-                const url='http://power-monitor-phidgets.herokuapp.com/getVals';
-                Http.open("GET", url);
-                Http.send();
-
-                Http.onreadystatechange = function () {
-                    if (this.readyState == 4 && this.status == 200){
-                        console.log(Http.responseText)
-                        if (JSON.parse(Http.responseText) != "NOT AVAILABLE"){
-                            if (started == 0) {
-                                redrawPlot(JSON.parse(Http.responseText));
-                                started = 1;
-                            } else {
-                                plotchar(JSON.parse(Http.responseText));
-                            }
-                        }
-                    }
-                }
-            }
-
             let layout = {
                     title: {
                         text:'Power Monitoring',
@@ -133,6 +91,48 @@
                     type:'line',
                     name: 'Power'
                 }];
+                
+            async function resetTime(){
+                const Http = new XMLHttpRequest();
+                const url='http://power-monitor-phidgets.herokuapp.com/resetTime';
+                Http.open("GET", url);
+                Http.send();
+
+                Http.onreadystatechange = function () {
+                    if (this.readyState == 4 && this.status == 200){
+                        console.log(Http.responseText)
+                        let chart = document.getElementById('chart_power');
+                        if (chart.data != undefined && chart.layout!=undefined) {
+                            if (chart.data.length > 0) {
+                                Plotly.deleteTraces('chart_power', 0);
+                                Plotly.newPlot('chart_power', );
+                                started = 0;
+                            }
+                        }
+                    }
+                }
+            }
+
+            async function getData(){
+                const Http = new XMLHttpRequest();
+                const url='http://power-monitor-phidgets.herokuapp.com/getVals';
+                Http.open("GET", url);
+                Http.send();
+
+                Http.onreadystatechange = function () {
+                    if (this.readyState == 4 && this.status == 200){
+                        console.log(Http.responseText)
+                        if (JSON.parse(Http.responseText) != "NOT AVAILABLE"){
+                            if (started == 0) {
+                                redrawPlot(JSON.parse(Http.responseText));
+                                started = 1;
+                            } else {
+                                plotchar(JSON.parse(Http.responseText));
+                            }
+                        }
+                    }
+                }
+            }
 
             function redrawPlot(x, y) {
                 console.log('redrawplot')
@@ -196,7 +196,7 @@
                 }
             }
             
-            var reqLoop = null;
+            let reqLoop = null;
             document.getElementById('start').onclick = () => {
                 getData();
                 if (reqLoop) {
@@ -215,9 +215,9 @@
                 }
             };
 
+            document.getElementById('reset').onclick = resetTime;
             resetTime();
             startPlot();
-            document.getElementById('reset').onclick = resetTime;
 
         </script>
 
