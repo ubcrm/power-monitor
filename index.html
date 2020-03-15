@@ -134,6 +134,7 @@
                                     started = 0;
                                 }
 
+
                                 plotchar(JSON.parse(Http.responseText));
                             }
                         }
@@ -147,8 +148,9 @@
 
                 if (chart.data.length == 0) {
                     Plotly.newPlot('chart_power', initialData, layout);
-                    started = 0;
                 }
+
+                started = 0;
                 Plotly.restyle('chart_power', 'x', [[x]]);
                 Plotly.restyle('chart_power', 'y', [[y]]);
             }
@@ -166,19 +168,19 @@
                 
                 if (obj.power != undefined && obj.time != undefined){
                     // Plotly.extendTraces('chart_power',  { y: [[Math.random()]], x: [[obj.time]] }, [0]);
-                    Plotly.extendTraces('chart_power',  { y: [[obj.power]], x: [[obj.time]] }, [0]);
-
-                    time = Math.floor(obj.time);
                     
-
-                    if (obj.power > maxPow) {
-                        maxPow = obj.power;
-                    }
-
                     document.getElementById('power_value').innerHTML = obj.power;
                     document.getElementById('current_value').innerHTML = obj.current;
                     document.getElementById('voltage_value').innerHTML = obj.voltage;
                     document.getElementById('max_pow_value').innerHTML = maxPow;
+
+                    Plotly.extendTraces('chart_power',  { y: [[obj.power]], x: [[obj.time]] }, [0]);
+
+                    time = Math.floor(obj.time);
+                    
+                    if (obj.power > maxPow) {
+                        maxPow = obj.power;
+                    }
 
                     if (time > 10) {
     
