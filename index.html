@@ -61,7 +61,7 @@
                                 family: 'Courier New, monospace',
                                 size: 18,
                                 color: '#7f7f7f'
-                                }
+                             }
                         },
                     },
                     yaxis: {
@@ -106,6 +106,27 @@
                             if (chart.data.length > 0) {
                                 // Plotly.deleteTraces('chart_power', 0);
                                 Plotly.newPlot('chart_power', initialData, layout);
+                                Plotly.relayout('chart_power', {
+                                xaxis: {
+                                showgrid: true,
+                                zeroline: true,
+                                gridcolor: '#bdbdbd',
+                                gridwidth: 2,
+                                zerolinecolor: '#969696',
+                                zerolinewidth: 4,
+                                linecolor: '#636363',
+                                linewidth: 6,
+                                title: {
+                                    text: 'Time (s)',
+                                    font: {
+                                        family: 'Courier New, monospace',
+                                        size: 18,
+                                        color: '#7f7f7f'
+                                        }
+                                },
+                                    range: [-1, 1]
+                                }});
+
                                 started = 0;
                             }
                         }
