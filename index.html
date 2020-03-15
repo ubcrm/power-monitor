@@ -33,10 +33,10 @@
 
         <script>
 
-            let maxPow = 0
-            let started = 0;
+            var maxPow = 0
+            var started = 0;
 
-            let layout = {
+            var layout = {
                     title: {
                         text:'Power Monitoring',
                         font: {
@@ -85,7 +85,7 @@
                     mode: 'lines+markers'
                 };
 
-            let initialData = [{
+            var initialData = [{
                     x: [0],
                     y: [0],
                     type:'line',
@@ -101,7 +101,7 @@
                 Http.onreadystatechange = function () {
                     if (this.readyState == 4 && this.status == 200){
                         console.log(Http.responseText)
-                        let chart = document.getElementById('chart_power');
+                        var chart = document.getElementById('chart_power');
                         if (chart.data != undefined && chart.layout!=undefined) {
                             if (chart.data.length > 0) {
                                 Plotly.deleteTraces('chart_power', 0);
@@ -127,6 +127,13 @@
                                 redrawPlot(JSON.parse(Http.responseText));
                                 started = 1;
                             } else {
+                                var chart = document.getElementById('chart_power');
+
+                                if (chart.data.length == 0) {
+                                    Plotly.newPlot('chart_power', initialData, layout);
+                                    started = 0;
+                                }
+
                                 plotchar(JSON.parse(Http.responseText));
                             }
                         }
@@ -136,6 +143,12 @@
 
             function redrawPlot(x, y) {
                 console.log('redrawplot')
+                var chart = document.getElementById('chart_power');
+
+                if (chart.data.length == 0) {
+                    Plotly.newPlot('chart_power', initialData, layout);
+                    started = 0;
+                }
                 Plotly.restyle('chart_power', 'x', [[x]]);
                 Plotly.restyle('chart_power', 'y', [[y]]);
             }
@@ -147,7 +160,7 @@
                 console.log("initialized plot");
             }
             
-            let time = 0;
+            var time = 0;
 
             async function plotchar(obj){
                 
@@ -196,7 +209,7 @@
                 }
             }
             
-            let reqLoop = null;
+            var reqLoop = null;
             document.getElementById('start').onclick = () => {
                 getData();
                 if (reqLoop) {
