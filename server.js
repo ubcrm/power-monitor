@@ -50,9 +50,6 @@ app.post("/updateVals", function(req, res) {
   let reqJSON = req.body
   // console.log(reqJSON);
   postBodies.push(reqJSON);
-  if (currentTime < reqJSON.time) {
-    setToZero = false;
-  }
 
   console.log("received, ", postBodies);
   if (!(Array.isArray(postBodies) && postBodies.length)) {
@@ -61,6 +58,9 @@ app.post("/updateVals", function(req, res) {
   }
 
   res.send("OK " + String(setToZero));
+  if (setToZero) {
+    setToZero = false;
+  }
 });
 
 app.listen(port, function() {
