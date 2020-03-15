@@ -4,9 +4,13 @@ import threading
 import atexit
 import json
 import urllib
+from random import randint
+from random import seed
+from retrying import retry
+from datetime import datetime
 
 from flask import Flask, jsonify
-from flask_cors import CORS
+#from flask_cors import CORS
 
 from Phidget22.Devices.DigitalOutput import *
 from Phidget22.PhidgetException import *
@@ -15,15 +19,21 @@ from Phidget22.Devices.VoltageRatioInput import *
 from Phidget22.Devices.VoltageInput import *
 
 app = Flask(__name__)
-CORS(app)
+#CORS(app)
+seed(1)
 
 voltage = 0
 current = 0
 startTime = time.time()
 serverUpdateThread = None
+s = requests.Session()
+
+sessionFile = None
+
+hadPhidgetException = False
 
 url = "http://power-monitor-phidgets.herokuapp.com/updateVals"
-headers = {
+header = {
     "Content-Type" : "application/json"
 }
 
@@ -46,7 +56,8 @@ class StoppableThread(threading.Thread):
     def run(self):
         while not self._stop_event.is_set():
             print("Still running!")
-            time.sleep(0.5)
+            time.sleep(0.15)
+            updateWebServer()
         print("stopped!")
 
 # @app.route('/getVals', methods=['GET'])
@@ -61,31 +72,39 @@ class StoppableThread(threading.Thread):
 #     return "OK"
 
 def updateWebServer():
-    global voltage, current, startTime, headers
-    while (True):
-        try:
-            jsonData = json.dumps({'current': current, 'voltage':voltage, 'power':voltage * current, 'time':time.time() - startTime}).encode("utf-8")
-            req = urllib.request.Request(url, jsonData, headers)
-            req.add_header('Content-Length', len(jsonData))
-            res = urllib.request.urlopen(req)
-            print(res)
-        except Exception as e:
-            print(e)
-            pass
-
-    return 0
+    global voltage, current, startTime, headers, app, url, s
+    
+    try:
+        jsonData = {'current': current, 'voltage': voltage,
+                    'power': current * voltage, 'time':time.time() - startTime}
+        res = s.post(url, data=json.dumps(jsonData), headers=header)
+        
+        print(res.text)
+        if res.text.split(" ")[1] == "true":
+            print('reseting start time')
+            startTime = time.time()
+            
+    except Exception as e:
+        print(e)
+        pass
 
 def on_new_voltage_reading(self, voltage_update):
-    global voltage
+    global voltage, current, sessionFile
     voltage = voltage_update
+    if sessionFile is not None:
+        power = voltage * current
+        sessionFile.write(str(power) + " W " + str(datetime.now()))
 
 
 def on_new_current_reading(self, current_update):
-    global current
+    global current, voltage, sessionFile
     current = current_update * 75.85973 - 37.76251
+    if sessionFile is not None:
+        power = voltage * current
+        sessionFile.write(str(power) + " W " + str(datetime.now()))
 
 def exit_handler(voltage_sensor, current_sensor):
-    global current, voltage, serverUpdateThread
+    global current, voltage, serverUpdateThread, sessionFile
     serverUpdateThread.join()
 
     if voltage_sensor is not None:
@@ -94,12 +113,40 @@ def exit_handler(voltage_sensor, current_sensor):
     if current_sensor is not None:
         current_sensor.close()
 
+    if sessionFile is not None:
+        sessionFile.close()
+        
+def retry_if_phidgets_exception():
+    global hadPhidgetException
+    return hadPhidgetException
+
+@retry(retry_on_result=retry_if_phidgets_exception)
 def main():
-    global current, voltage, app, serverUpdateThread
+    global current, voltage, app, serverUpdateThread, hadPhidgetException, sessionFile
+    
+    hadPhidgetException = False
     
     voltage_sensor = None
     current_sensor = None
-    serverUpdateThread = StoppableThread(target=updateWebServer)
+    serverUpdateThread = StoppableThread()
+    
+    sessionNum = 0
+    
+    with open("numSessions.txt", "r+") as numSessionsFile:
+        sessionNum = int(numSessionsFile.read()) + 1
+        print(sessionNum)
+        numSessionsFile.seek(0)
+        numSessionsFile.write(str(sessionNum))
+        numSessionsFile.truncate()
+        numSessionsFile.close()
+        
+    timestamp = datetime.now()
+    sessionFile = open("Sessions/session"+ str(sessionNum)
+                       + "_" + str(timestamp.month) + "-" + str(timestamp.day)
+                       + "_" + str(timestamp.hour) + "-" + str(timestamp.minute) + "-" + str(timestamp.second) + ".txt", "w+")
+    
+    
+    print("Session File created")
 
     try:
         voltage_sensor = VoltageInput()
@@ -113,6 +160,7 @@ def main():
         current_sensor.setIsHubPortDevice(True)
         current_sensor.setOnVoltageRatioChangeHandler(on_new_current_reading)
 
+        voltage_sensor.openWaitForAttachment(1000)
         current_sensor.openWaitForAttachment(1000)
         
         serverUpdateThread.start()
@@ -124,28 +172,16 @@ def main():
         
     except PhidgetException as e:
         print(e)
+        hadPhidgetException = True
         exit_handler(voltage_sensor, current_sensor)
         
     except KeyboardInterrupt as key:
         print(key)
         exit_handler(voltage_sensor, current_sensor)
-
-    #voltage_sensor.openWaitForAttachment(1000)
+        
+    except IOError as e:
+        print(e)
+        exit_handler(voltage_sensor, current_sensor)
     
-
-    #file = open("power_data.txt", "a")
-
-    #try:
-    #    while True:
-    #        time.sleep(0.05)
-    #        message = "voltage: %f ; current: %f ; power: %f" % (voltage, current, voltage * current)
-    #        print(message)
-    #        file.write(message + "\n")
-    #
-    #except KeyboardInterrupt:
-    #    print("Ending Program")
-    #file.close()
-    
-    
-
-main()
+if __name__ == '__main__':
+    main()
