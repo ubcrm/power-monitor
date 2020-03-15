@@ -26,6 +26,8 @@ app.get("/getVals", function(req, res) {
 
     let responseJSON = postBodies[0];
     responseJSON.time = responseJSON.time - initialTime;
+    currentTime = responseJSON.time;
+
     postBodies.shift();
     console.log("sending, ", postBodies);
     res.json(responseJSON);
