@@ -49,6 +49,7 @@
                         if (chart.data != undefined && chart.layout!=undefined) {
                             if (chart.data.length > 0) {
                                 Plotly.deleteTraces('chart_power', 0);
+                                startPlot();
                                 started = 0;
                             }
                         }
