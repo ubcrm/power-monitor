@@ -196,12 +196,15 @@
             var reqLoop = null;
             document.getElementById('start').onclick = () => {
                 getData();
+                if (reqLoop) {
+                    clearInterval(reqLoop);
+                }
                 reqLoop = setInterval(getData, 650);
                 console.log('starting');
             };
 
             document.getElementById('stop').onclick = () => {
-                if (reqLoop == null) {
+                if (!reqLoop) {
                     alert('Not started yet, cannot perform stop operation');
                 } else {
                     console.log('stopping');
