@@ -17,7 +17,7 @@
             <button id="start">Start Plot</button>
             <button id="stop">Stop Plot</button>
             <button id="reset">Reset Plot time</button>
-            <div style="font-size: 3.5em;">
+            <div style="font-size: 3.2em;">
                 <div>
                     <div style="display:inline-block">Power (W):   </div><div id="power_value" style="display:inline-block"></div>
                 </div>
@@ -267,7 +267,7 @@
                 if (reqLoop) {
                     clearInterval(reqLoop);
                 }
-                reqLoop = setInterval(getData, 650);
+                reqLoop = setInterval(getData, 150);
                 console.log('starting');
             };
 
