@@ -7,6 +7,8 @@ let port = process.env.PORT || 8080;
 let postBodies = [];
 
 let initialTime = 0;
+let currentTime = 0;
+let setToZero = false;
 
 app.use(express.static(__dirname));
 // parse application/json
@@ -37,6 +39,7 @@ app.get("/resetTime", function(req, res) {
   postBodies = [];
 
   console.log("time reset, ", postBodies);
+  setToZero = true;
   res.send("OK");
 });
 
@@ -45,14 +48,17 @@ app.post("/updateVals", function(req, res) {
   let reqJSON = req.body
   // console.log(reqJSON);
   postBodies.push(reqJSON);
+  if (currentTime < reqJSON.time) {
+    setToZero = false;
+  }
 
   console.log("received, ", postBodies);
   if (!(Array.isArray(postBodies) && postBodies.length)) {
     initialTime = reqJSON.time;
-    console.log(initialTime);
+    console.log("initial time: ", initialTime);
   }
 
-  res.send("OK");
+  res.send("OK " + String(setToZero));
 });
 
 app.listen(port, function() {
