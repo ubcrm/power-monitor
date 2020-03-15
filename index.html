@@ -45,6 +45,11 @@
                 Http.onreadystatechange = function () {
                     if (this.readyState == 4 && this.status == 200){
                         console.log(Http.responseText)
+                        let chart = document.getElementById('chart_power');
+                        if (chart.data != undefined && chart.layout!=undefined) {
+                            Plotly.deleteTraces('chart_power', 0);
+                            started = 0;
+                        }
                     }
                 }
             }
@@ -58,7 +63,7 @@
                 Http.onreadystatechange = function () {
                     if (this.readyState == 4 && this.status == 200){
                         console.log(Http.responseText)
-                        if (Http.responseText != "NOT AVAILABLE"){
+                        if (JSON.parse(Http.responseText) != "NOT AVAILABLE"){
                             if (started == 0) {
                                 redrawPlot(JSON.parse(Http.responseText));
                                 started = 1;
