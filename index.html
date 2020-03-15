@@ -47,8 +47,10 @@
                         console.log(Http.responseText)
                         let chart = document.getElementById('chart_power');
                         if (chart.data != undefined && chart.layout!=undefined) {
-                            Plotly.deleteTraces('chart_power', 0);
-                            started = 0;
+                            if (chart.data.length > 0) {
+                                Plotly.deleteTraces('chart_power', 0);
+                                started = 0;
+                            }
                         }
                     }
                 }
